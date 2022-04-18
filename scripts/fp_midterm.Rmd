@@ -58,8 +58,11 @@ assessments_clean <- map(assessments_clean, ~drop_na(.x, contains("number")))
 
 2. (10 points) Sum the *n* across grades and school for each district within each academic year, student group, and level. Calculate the number of schools (unique schools listed) for each district. Also move your data to a wider format where the student groups become new columns, filled by the district n. Remove districts that did not report numbers for one or both student groups (i.e., drop missing data from the new columns). Your data frame should look like the below.
 
-```{r}
-
+```{r eval=FALSE, include=FALSE}
+assessments_clean %>% 
+  group_by(`Student Group`, `District`, `Grade Level`) %>% 
+  summarize(sum = sum(n)) %>% 
+  count(unique(`School`))
 ```
 
 
@@ -91,6 +94,15 @@ standard deviations below students coded White within this school district for t
 
 1. (10 points) Estimate the average achievement differences in terms of an effect size for every school district in the state that reported data on both student groups (i.e., using the data we created above), for each academic year. Conduct this analysis twice, once using `group_by() %>% nest() map()` and once using `nest_by() %>% summarize()`.
 
+Method 1:
+```{r}
+
+```
+
+Method 2:
+```{r}
+
+```
 
 Note, on my computer these took about 40 seconds per analysis. It will likely take a bit longer for you, but shouldn't take *too* long. You may get a warning. Just go ahead and ignore that for now.
 
