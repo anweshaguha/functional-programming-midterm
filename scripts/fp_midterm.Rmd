@@ -1,13 +1,14 @@
 ---
 title: "Functional Programming - Midterm"
-author: "Anwesha Guha, Errol Kaylor, Cassie Malcolm, Manuel Vasquez"
+author: "Anwesha Guha, Errol Kaylor, Cassie Malcolm, Manuel Vazquez"
 date: "4/5/2022"
 output: html_document
 ---
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(cache = TRUE)
-library(purrr, tidyverse, janitor)
+library(tidyverse)
+library(janitor)
 library(here)
 library(rio)
 ```
@@ -39,13 +40,27 @@ assessments <- map(15:18, ~download_file(.x))
 Conduct some basic data cleaning to make your data file look like the following. 
 
 * Filter for only student groups coded as `"White"` or `"Hispanic/Latino"`. 
-* Select variables related to the number of students in each of the levels (1:4), and not percentages or collapsed levels.
-* Remove any row that has missing data in any of the *n* variables
 
 ```{r}
+assessments_clean <- map(assessments, ~filter(., `Student Group` == "White" | `Student Group` == "Hispanic/Latino"))
 ```
 
+* Select variables related to the number of students in each of the levels (1:4), and not percentages or collapsed levels.
+```{r}
+assessments_clean <- map(assessments_clean, ~select(., -contains(c("percent", "rate", "proficient"))))
+```
+
+* Remove any row that has missing data in any of the *n* variables
+```{r}
+assessments_clean <- map(assessments_clean, ~drop_na(.x, contains("number")))
+```
+
+
 2. (10 points) Sum the *n* across grades and school for each district within each academic year, student group, and level. Calculate the number of schools (unique schools listed) for each district. Also move your data to a wider format where the student groups become new columns, filled by the district n. Remove districts that did not report numbers for one or both student groups (i.e., drop missing data from the new columns). Your data frame should look like the below.
+
+```{r}
+
+```
 
 
 # Part B: Achievement disparities
