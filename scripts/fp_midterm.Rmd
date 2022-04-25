@@ -132,7 +132,7 @@ method1 <- assessment_agg %>%
   group_by(district, academic_year) %>%
   nest() %>%
   mutate(m1 = map(data, ~estimate_v(.x[1:4, ], "white","hispanic_latino")),
-         auc = map(m1, ),
+         achieve_diff = map(m1, 2)
          )
 ```
 
