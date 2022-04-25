@@ -11,6 +11,7 @@ library(tidyverse)
 library(janitor)
 library(here)
 library(rio)
+library(gapr)
 ```
 
 # Part A: Data 
@@ -42,9 +43,9 @@ Conduct some basic data cleaning to make your data file look like the following.
 * Filter for only student groups coded as `"White"` or `"Hispanic/Latino"`. 
 
 ```{r}
-assessments_clean <- map(assessments, ~filter(., `Student Group` == "White" | `Student Group` == "Hispanic/Latino"))
+# assessments_clean <- map(assessments, ~filter(., `Student Group` == "White" | `Student Group` == "Hispanic/Latino"))
 
-#assessments_clean <- assessments %>%
+assessments_clean <- assessments %>%
   filter(`Student Group`== "Hispanic/Latino" | `Student Group` == "White")
 ```
 
@@ -61,7 +62,12 @@ assessments_clean <- assessments_clean %>%
 #assessments_clean <- map(assessments_clean, ~drop_na(.x, contains("number")))
 
 assessments_clean <- assessments_clean %>% 
-  drop_na(contains("number"))
+  drop_na(contains("number")) %>%
+  pivot_longer(cols = 9:12,
+               names_to = "level",
+               names_prefix = "Number Level",
+               values_to = "n") %>%
+  janitor::clean_names() 
 
 assessments_clean
 ```
@@ -69,11 +75,24 @@ assessments_clean
 
 2. (10 points) Sum the *n* across grades and school for each district within each academic year, student group, and level. Calculate the number of schools (unique schools listed) for each district. Also move your data to a wider format where the student groups become new columns, filled by the district n. Remove districts that did not report numbers for one or both student groups (i.e., drop missing data from the new columns). Your data frame should look like the below.
 
-```{r eval=FALSE, include=FALSE}
-assessments_clean %>% 
-  group_by(`Student Group`, `District`, `Grade Level`) %>% 
-  summarize(sum = sum(n)) %>% 
-  count(unique(`School`))
+```{r }
+# Made updates to this section because prior cleaning was not preparing the data like it was expected in the midterm instructions - Manuel
+schools <- assessments_clean %>%
+  group_by(district,academic_year) %>%
+  summarize(n_schools = n_distinct(school))
+
+assessment_agg <- assessments_clean %>%
+  group_by(district,academic_year, level, student_group) %>%
+  summarize(n_students = sum(n)) %>%
+  pivot_wider(names_from = student_group,
+              values_from = n_students) %>%
+  
+  left_join(schools) %>%
+  janitor::clean_names() %>%
+  drop_na(contains("hispanic"))
+
+head(assessment_agg)
+
 ```
 
 
@@ -95,10 +114,11 @@ To estimate the average achievement difference between students coded Hispanic/L
 
 
 ```{r}
-library(gapr)
-assessments[1:4, ] %>% # data source - just first four rows for first district
-d("white", "hispanic_latino") # columns for reference/focal groups
+test <- assessment_agg[1:4, ] %>% # just first four rows for first district
+  estimate_v("white", "hispanic_latino") # columns for ref/focal groups
 
+str(test)
+# Can extract the components?
 ```
 
 We can see that students coded Hispanic/Latino scored, on average, about 0.81 
@@ -108,7 +128,12 @@ standard deviations below students coded White within this school district for t
 
 Method 1:
 ```{r}
-
+method1 <- assessment_agg %>%
+  group_by(district, academic_year) %>%
+  nest() %>%
+  mutate(m1 = map(data, ~estimate_v(.x[1:4, ], "white","hispanic_latino")),
+         auc = map(m1, ),
+         )
 ```
 
 Method 2:
