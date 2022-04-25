@@ -42,20 +42,28 @@ Conduct some basic data cleaning to make your data file look like the following.
 * Filter for only student groups coded as `"White"` or `"Hispanic/Latino"`. 
 
 ```{r}
-# assessments_clean <- map(assessments, ~filter(., `Student Group` == "White" | `Student Group` == "Hispanic/Latino"))
+assessments_clean <- map(assessments, ~filter(., `Student Group` == "White" | `Student Group` == "Hispanic/Latino"))
 
-assessments_clean <- assessments %>%
+#assessments_clean <- assessments %>%
   filter(`Student Group`== "Hispanic/Latino" | `Student Group` == "White")
 ```
 
 * Select variables related to the number of students in each of the levels (1:4), and not percentages or collapsed levels.
 ```{r}
-assessments_clean <- map_dfr(assessments_clean, ~select(., -contains(c("percent", "rate", "proficient"))))
+#assessments_clean <- map_dfr(assessments_clean, ~select(., -contains(c("percent", "rate", "proficient"))))
+
+assessments_clean <- assessments_clean %>% 
+  select(-contains(c("percent","rate","proficient")))
 ```
 
 * Remove any row that has missing data in any of the *n* variables
 ```{r}
-assessments_clean <- map(assessments_clean, ~drop_na(.x, contains("number")))
+#assessments_clean <- map(assessments_clean, ~drop_na(.x, contains("number")))
+
+assessments_clean <- assessments_clean %>% 
+  drop_na(contains("number"))
+
+assessments_clean
 ```
 
 
