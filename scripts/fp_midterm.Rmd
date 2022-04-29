@@ -175,9 +175,9 @@ method1 %>%
 Create a directory
 ```{r}
 # Cassie's working on this section.
-filenames <- here::here("plots", paste0("cyl", names(by_cyl), ".png")) 
+# filenames <- here::here("plots", paste0("cyl", names(by_cyl), ".png")) 
 
-filenames
+# filenames
 
 #OR fs::dir_create(here::here("plots", "subfolder name"))
 
@@ -186,15 +186,15 @@ filenames
 Save plots
 ```{r}
 # Cassie's working on this section - will update when graphs ready.
-newspapers <- str_replace_all(
-tolower(final_plots$newspaper),
-" ",
-"-"
-) paths <- here::here(
-"plots",
-"pulitzers",
-glue("{newspapers}.png")
-)
+#newspapers <- str_replace_all(
+#tolower(final_plots$newspaper),
+#" ",
+#"-"
+#) paths <- here::here(
+#"plots",
+#"pulitzers",
+#glue("{newspapers}.png")
+#)
 ```
 **HINTS**
 
