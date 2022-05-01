@@ -137,9 +137,11 @@ method1
 
 Method 2: using `nest_by() %>% summarize()`
 ```{r}
-method2 <-  nest_by(assessment_agg) %>% #I'm still debugging this - Cassie
-  summarize(district, academic_year) %>%
-  mutate(ach_dif2 = estimate_v("white", "hispanic_latino"))
+method2 <- assessment_agg %>% 
+  ungroup() %>%  
+  nest_by(district, academic_year) %>%  
+  summarize(ach_dif2 = list(estimate_v(data, "white", "hispanic_latino"))) %>%
+  unnest(ach_dif2)
 
 method2
 ```
