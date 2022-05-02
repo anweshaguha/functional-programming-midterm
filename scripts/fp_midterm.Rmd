@@ -152,16 +152,30 @@ Note, on my computer these took about 40 seconds per analysis. It will likely ta
 
 Reproduce the following plot to confirm that the estimates are equivalent across methods.
 ```{r}
-#replace method1_b with method2 result when ready
-method1_b <- method1
+#replace method1_b with method2 result when ready - Done, Cassie
+method2 <- method1
 
-str(method1_b)
-#map2(method1,method1_b,~ggplot(data = .x,aes(x=achieve_diff,y=achieve_diff))) #intention is to cycle through metho1 and method2 objects, and create geom_points using achieve_diff from each observation.
-str(method1_b$achieve_diff)
+str(method2)
+map2(method1,method2,~ggplot(data = .x,aes(x=achieve_diff,y=achieve_diff))) #intention is to cycle through metho1 and method2 objects, and create geom_points using achieve_diff from each observation.
+str(method2$achieve_diff)
 
 ggplot(method1, aes(achieve_diff,academic_year))
 
 ```
+
+```{r}
+method1 %>%  # Cassie's effort at Part B Plot 2 - still throwing an error
+  rename(v1 = achieve_diff) %>% 
+  left_join(method2) %>% 
+  rename(v2 = v) %>% 
+  ggplot(aes(v2, v1)) +
+  geom_point() +
+  geom_line(color = "cornflowerblue") +
+  xlab("nest_by") + 
+  ylab("group_by") +
+  theme_minimal()
+```
+
 
 3. (15 points) The plot below shows the achievement difference estimates for one school district across years. Produce a similar plot to the below for each of the first 100 school districts. Once you've created all the plots, **reproduce them again using an alternative method**. Make sure you don't miss the caption noting the number of schools in the district.
 
