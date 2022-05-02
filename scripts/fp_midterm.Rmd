@@ -130,7 +130,8 @@ method1 <- assessment_agg %>%
   nest() %>%
   mutate(m1 = map(data, ~estimate_v(.x[1:4, ], "white","hispanic_latino")),
          achieve_diff = map(m1, 2)
-         )
+         ) %>% 
+  unnest(achieve_diff)
 
 method1
 ```
@@ -153,27 +154,38 @@ Note, on my computer these took about 40 seconds per analysis. It will likely ta
 Reproduce the following plot to confirm that the estimates are equivalent across methods.
 ```{r}
 #replace method1_b with method2 result when ready - Done, Cassie
-method2 <- method1
+# method2 < method2 # I'm not sure if we want to replace one df with another. I did a join instead. I redid this section - Anwesha
+combined_methods <- left_join(method1, method2, by = c("district", "academic_year"))
 
-str(method2)
-map2(method1,method2,~ggplot(data = .x,aes(x=achieve_diff,y=achieve_diff))) #intention is to cycle through metho1 and method2 objects, and create geom_points using achieve_diff from each observation.
-str(method2$achieve_diff)
+# str(method2)
+# map2(method1,method2,~ggplot(data = .x,aes(x=achieve_diff,y=achieve_diff))) #intention is to cycle through metho1 and method2 objects, and create geom_points using achieve_diff from each observation.
+# str(method2$achieve_diff)
 
-ggplot(method1, aes(achieve_diff,academic_year))
+# ggplot(method1, aes(achieve_diff,academic_year))
 
+combined_methods %>% 
+  ggplot(aes(x = v, # method 2 on x axis
+             y = achieve_diff)) + # method 1 on y axis
+  geom_point(color = "gray80",
+             alpha = .85) +
+  geom_smooth(color = "cornflowerblue",
+              alpha = .9) +
+  theme_minimal() +
+  labs(x = "V (`nest_by() %>% summarize()`)",
+       y = "V (`group_by() %>% nest() map()`)")
 ```
 
 ```{r}
-method1 %>%  # Cassie's effort at Part B Plot 2 - still throwing an error
-  rename(v1 = achieve_diff) %>% 
-  left_join(method2) %>% 
-  rename(v2 = v) %>% 
-  ggplot(aes(v2, v1)) +
-  geom_point() +
-  geom_line(color = "cornflowerblue") +
-  xlab("nest_by") + 
-  ylab("group_by") +
-  theme_minimal()
+#method1 %>%  # Cassie's effort at Part B Plot 2 - still throwing an error
+#  rename(v1 = achieve_diff) %>% 
+#  left_join(method2) %>% 
+#  rename(v2 = v) %>% 
+#  ggplot(aes(v2, v1)) +
+#  geom_point() +
+#  geom_line(color = "cornflowerblue") +
+#  xlab("nest_by") + 
+#  ylab("group_by") +
+#  theme_minimal()
 ```
 
 
