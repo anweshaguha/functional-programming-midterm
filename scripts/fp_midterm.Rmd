@@ -13,7 +13,7 @@ library(pacman)
 pacman::p_load(tidyverse, dplyr, janitor, here, rio, gapr)
 ```
 
-# Part A: Data 
+# Part A: Data
 ### 20 points
 
 The following function downloads data from the Oregon Department of education
@@ -37,9 +37,9 @@ download_file <- function(year) {
 assessments <- map_dfr(15:18, ~download_file(.x))
 ```
 
-Conduct some basic data cleaning to make your data file look like the following. 
+Conduct some basic data cleaning to make your data file look like the following.
 
-* Filter for only student groups coded as `"White"` or `"Hispanic/Latino"`. 
+* Filter for only student groups coded as `"White"` or `"Hispanic/Latino"`.
 
 ```{r}
 # assessments_clean <- map(assessments, ~filter(., `Student Group` == "White" | `Student Group` == "Hispanic/Latino"))
@@ -52,7 +52,7 @@ assessments_clean <- assessments %>%
 ```{r}
 #assessments_clean <- map_dfr(assessments_clean, ~select(., -contains(c("percent", "rate", "proficient"))))
 
-assessments_clean <- assessments_clean %>% 
+assessments_clean <- assessments_clean %>%
   select(-contains(c("percent","rate","proficient")))
 ```
 
@@ -60,13 +60,13 @@ assessments_clean <- assessments_clean %>%
 ```{r}
 #assessments_clean <- map(assessments_clean, ~drop_na(.x, contains("number")))
 
-assessments_clean <- assessments_clean %>% 
+assessments_clean <- assessments_clean %>%
   drop_na(contains("number")) %>%
   pivot_longer(cols = 9:12,
                names_to = "level",
                names_prefix = "Number Level",
                values_to = "n") %>%
-  janitor::clean_names() 
+  janitor::clean_names()
 
 assessments_clean
 ```
@@ -84,7 +84,7 @@ assessment_agg <- assessments_clean %>%
   summarize(n_students = sum(n)) %>%
   pivot_wider(names_from = student_group,
               values_from = n_students) %>%
-  
+
   left_join(schools) %>%
   janitor::clean_names() %>%
   drop_na(contains("hispanic"))
@@ -118,7 +118,7 @@ str(test)
 # Can extract the components?
 ```
 
-We can see that students coded Hispanic/Latino scored, on average, about 0.81 
+We can see that students coded Hispanic/Latino scored, on average, about 0.81
 standard deviations below students coded White within this school district for this year.
 
 1. (10 points) Estimate the average achievement differences in terms of an effect size for every school district in the state that reported data on both student groups (i.e., using the data we created above), for each academic year. Conduct this analysis twice, once using `group_by() %>% nest() map()` and once using `nest_by() %>% summarize()`.
@@ -137,10 +137,13 @@ method1
 
 Method 2: using `nest_by() %>% summarize()`
 ```{r}
-method2 <-  nest_by(assessment_agg) %>% #I'm still debugging this - Cassie
-  summarize(district, academic_year) %>%
-  mutate(ach_dif2 = estimate_v("white", "hispanic_latino"))
-#method2
+method2 <- assessment_agg %>% 
+  ungroup() %>%  
+  nest_by(district, academic_year) %>%  
+  summarize(ach_dif2 = list(estimate_v(data, "white", "hispanic_latino"))) %>%
+  unnest(ach_dif2)
+
+method2
 ```
 
 Note, on my computer these took about 40 seconds per analysis. It will likely take a bit longer for you, but shouldn't take *too* long. You may get a warning. Just go ahead and ignore that for now.
@@ -150,27 +153,27 @@ Note, on my computer these took about 40 seconds per analysis. It will likely ta
 Reproduce the following plot to confirm that the estimates are equivalent across methods.
 ```{r}
 #replace method1_b with method2 result when ready
-method1_b <- method1 
+method1_b <- method1
 
 str(method1_b)
-#map2(method1,method1_b,~ggplot(data = .x,aes(x=achieve_diff,y=achieve_diff))) #intention is to cycle through metho1 and method2 objects, and create geom_points using achieve_diff from each observation. 
+#map2(method1,method1_b,~ggplot(data = .x,aes(x=achieve_diff,y=achieve_diff))) #intention is to cycle through metho1 and method2 objects, and create geom_points using achieve_diff from each observation.
 str(method1_b$achieve_diff)
 
 ggplot(method1, aes(achieve_diff,academic_year))
 
 ```
 
-3. (15 points) The plot below shows the achievement difference estimates for one school district across years. Produce a similar plot to the below for each of the first 100 school districts. Once you've created all the plots, **reproduce them again using an alternative method**. Make sure you don't miss the caption noting the number of schools in the district. 
+3. (15 points) The plot below shows the achievement difference estimates for one school district across years. Produce a similar plot to the below for each of the first 100 school districts. Once you've created all the plots, **reproduce them again using an alternative method**. Make sure you don't miss the caption noting the number of schools in the district.
 
 Hint: You need to select unique *districts*. You may want to try something like the following:
 
 ```{r}
 dists <- unique(assessment_agg$district)[1:100] # Updated this code with our dataframe labels - Cassie
 
-dists_of_interest <- method1 %>% 
+dists_of_interest <- method1 %>%
   filter(district %in% dists)
 
-dist_1 <- dists_of_interest %>% 
+dist_1 <- dists_of_interest %>%
   filter(district =="Adrian SD 61")
 #creating with just Adrian SD 61
 
@@ -191,7 +194,7 @@ dist_1 %>% ggplot(aes(academic_year,achieve_diff)) #why am I getting the discret
 Create a directory
 ```{r}
 # Cassie's working on this section.
-# filenames <- here::here("plots", paste0("cyl", names(by_cyl), ".png")) 
+# filenames <- here::here("plots", paste0("cyl", names(by_cyl), ".png"))
 
 # filenames
 
