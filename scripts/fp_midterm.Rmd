@@ -140,8 +140,7 @@ Method 2: using `nest_by() %>% summarize()`
 method2 <-  nest_by(assessment_agg) %>% #I'm still debugging this - Cassie
   summarize(district, academic_year) %>%
   mutate(ach_dif2 = estimate_v("white", "hispanic_latino"))
-
-method2
+#method2
 ```
 
 Note, on my computer these took about 40 seconds per analysis. It will likely take a bit longer for you, but shouldn't take *too* long. You may get a warning. Just go ahead and ignore that for now.
@@ -150,6 +149,14 @@ Note, on my computer these took about 40 seconds per analysis. It will likely ta
 
 Reproduce the following plot to confirm that the estimates are equivalent across methods.
 ```{r}
+#replace method1_b with method2 result when ready
+method1_b <- method1 
+
+str(method1_b)
+#map2(method1,method1_b,~ggplot(data = .x,aes(x=achieve_diff,y=achieve_diff))) #intention is to cycle through metho1 and method2 objects, and create geom_points using achieve_diff from each observation. 
+str(method1_b$achieve_diff)
+
+ggplot(method1, aes(achieve_diff,academic_year))
 
 ```
 
@@ -160,8 +167,17 @@ Hint: You need to select unique *districts*. You may want to try something like 
 ```{r}
 dists <- unique(assessment_agg$district)[1:100] # Updated this code with our dataframe labels - Cassie
 
-method1 %>% 
+dists_of_interest <- method1 %>% 
   filter(district %in% dists)
+
+dist_1 <- dists_of_interest %>% 
+  filter(district =="Adrian SD 61")
+#creating with just Adrian SD 61
+
+dist_1 %>% ggplot(aes(academic_year,achieve_diff)) #why am I getting the discrete value and continuous scale error?!?! I am going bonkers
+
+
+
 ```
 
 
