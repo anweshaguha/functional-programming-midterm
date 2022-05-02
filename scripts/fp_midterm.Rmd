@@ -10,7 +10,7 @@ knitr::opts_chunk$set(cache = TRUE)
 
 library(pacman)
 
-pacman::p_load(tidyverse, dplyr, janitor, here, rio, gapr)
+pacman::p_load(tidyverse, dplyr, janitor, here, rio, gapr,glue)
 ```
 
 # Part A: Data
@@ -156,12 +156,11 @@ Reproduce the following plot to confirm that the estimates are equivalent across
 #replace method1_b with method2 result when ready - Done, Cassie
 # method2 < method2 # I'm not sure if we want to replace one df with another. I did a join instead. I redid this section - Anwesha
 combined_methods <- left_join(method1, method2, by = c("district", "academic_year"))
-
+# 
 # str(method2)
 # map2(method1,method2,~ggplot(data = .x,aes(x=achieve_diff,y=achieve_diff))) #intention is to cycle through metho1 and method2 objects, and create geom_points using achieve_diff from each observation.
 # str(method2$achieve_diff)
 
-# ggplot(method1, aes(achieve_diff,academic_year))
 
 combined_methods %>% 
   ggplot(aes(x = v, # method 2 on x axis
@@ -195,15 +194,58 @@ Hint: You need to select unique *districts*. You may want to try something like 
 
 ```{r}
 dists <- unique(assessment_agg$district)[1:100] # Updated this code with our dataframe labels - Cassie
-
+dists_of_interest
 dists_of_interest <- method1 %>%
   filter(district %in% dists)
 
 dist_1 <- dists_of_interest %>%
-  filter(district =="Adrian SD 61")
-#creating with just Adrian SD 61
+  filter(district =="Adrian SD 61") %>% 
+  mutate(v_se = map_dbl(m1,3),
+         label = map_chr(glue("District included {~.1} schools."),2)) #bringing se values out to the row level
 
-dist_1 %>% ggplot(aes(academic_year,achieve_diff)) #why am I getting the discrete value and continuous scale error?!?! I am going bonkers
+dist_1[3]
+
+dist_1 %>% ggplot(aes(academic_year,achieve_diff))+
+  geom_line()+
+  geom_errorbar(aes(ymin = achieve_diff-v_se,
+                    ymax=achieve_diff+v_se))+
+  geom_hline(yintercept=0,
+             color = "red")+
+  geom_point(data = filter(dist_1,achieve_diff<0),
+             color = "#d35cff")+
+  geom_point(data = filter(dist_1,achieve_diff>0),
+             color = "#5ca3ff")+
+  labs(title = glue("Achievement Gap Estimates: {dist_1[[1]]}"),
+       subtitle = "Negative values indicate White students have higher average achievement\nPositive Values indicate Hispanic/Latino students have higher average achievement",
+       caption = glue("Note: District included {dist_1[[3]][[1]][[4]]} school(s)"),
+       x="School Year",
+       y= "Average achievement difference (SD units)")
+    
+    
+#why am I getting the discrete value and continuous scale error?!?! I am going bonkers
+#not sure what change Anwesha made to have this code start working, but it makes me joyous)
+
+
+#EK: creating the caption is still in progress
+final_plots <- dists_of_interest %>% 
+  mutate(plots = pmap(list(district,data),~{
+    ggplot(data,aes(academic_year,achieve_diff))+
+      geom_errorbar(aes(ymin = achieve_diff-v_se,
+                    ymax=achieve_diff+v_se))+
+  geom_hline(yintercept=0,
+             color = "red")+
+  geom_point(data = filter(data,achieve_diff<0),
+             color = "#d35cff")+
+  geom_point(data = filter(data,achieve_diff>0),
+             color = "#5ca3ff")+
+  labs(title = glue("Achievement Gap Estimates: {..1}"),
+       subtitle = "Negative values indicate White students have higher average achievement\nPositive Values indicate Hispanic/Latino students have higher average achievement",
+#       caption = glue("Note: District included {dist_1[[3]][[1]][[4]]} school(s)"),
+       x="School Year",
+       y= "Average achievement difference (SD units)")
+  }))
+final_plots$plots[[1]]
+
 
 
 
