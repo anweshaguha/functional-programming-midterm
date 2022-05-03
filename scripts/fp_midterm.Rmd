@@ -200,8 +200,8 @@ dists_of_interest <- method1 %>%
 
 dist_1 <- dists_of_interest %>%
   filter(district =="Adrian SD 61") %>% 
-  mutate(v_se = map_dbl(m1,3),
-         label = map_chr(glue("District included {~.1} schools."),2)) #bringing se values out to the row level
+  mutate(v_se = map_dbl(m1,3))
+ #        label = map_chr(glue("District included {~.1} schools."),2)) #bringing se values out to the row level
 
 dist_1[3]
 
@@ -228,23 +228,23 @@ dist_1 %>% ggplot(aes(academic_year,achieve_diff))+
 
 #EK: creating the caption is still in progress
 final_plots <- dists_of_interest %>% 
-  mutate(plots = pmap(list(district,data),~{
-    ggplot(data,aes(academic_year,achieve_diff))+
+  mutate(plots = pmap(list(district,data), ~{
+    ggplot(..2,aes(academic_year,achieve_diff))+
       geom_errorbar(aes(ymin = achieve_diff-v_se,
                     ymax=achieve_diff+v_se))+
-  geom_hline(yintercept=0,
+      geom_hline(yintercept=0,
              color = "red")+
-  geom_point(data = filter(data,achieve_diff<0),
+      geom_point(data = filter(..2,achieve_diff<0),
              color = "#d35cff")+
-  geom_point(data = filter(data,achieve_diff>0),
+      geom_point(data = filter(..2,achieve_diff>0),
              color = "#5ca3ff")+
-  labs(title = glue("Achievement Gap Estimates: {..1}"),
-       subtitle = "Negative values indicate White students have higher average achievement\nPositive Values indicate Hispanic/Latino students have higher average achievement",
-#       caption = glue("Note: District included {dist_1[[3]][[1]][[4]]} school(s)"),
-       x="School Year",
-       y= "Average achievement difference (SD units)")
-  }))
-final_plots$plots[[1]]
+      labs(title = glue("Achievement Gap Estimates: {..1}"),
+           subtitle = "Negative values indicate White students have higher average achievement\nPositive Values indicate Hispanic/Latino students have higher average achievement",
+           x="School Year",
+           y= "Average achievement difference (SD units)")
+  })
+)
+final_plots$plots
 
 
 
