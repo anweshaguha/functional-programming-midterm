@@ -236,7 +236,7 @@ final_plots2 <- district_differences %>%
           x = "School year",
           y = "Average achievement difference (SD units)",
           caption = glue("Note: District included {..3} schools."),
-          subtitle = glue("Negative values indicate <span style = 'color:#D35CFF;'>White</span> students have higher average achievement <br> Positive values indicate <span style='color:#5CA3FF;'>Hispanic/Latino</span> students have higher average achievement")
+          subtitle = glue("Negative values indicate <span style ='color:#d35cff;'>White</span> students have higher average achievement<br />Positive Values indicate <span style = 'color:#5ca3ff;'>Hispanic/Latino</span> students have higher average achievement")
         ) +
                 theme_minimal() +
         theme(legend.position="none",
@@ -247,7 +247,9 @@ final_plots2 <- district_differences %>%
 
 **Extra Credit:** For up to one point extra credit, create a third set that "staples together" each of the preceding pairs of plots (i.e., to confirm that the plots were produced identically by both methods).
 ```{r}
-
+plots_stapled <- list(map2(.x = final_plots1$plot,
+                           .y = final_plots2$plot,
+                           grid.arrange, nrow = 1))
 ```
 
 4. (10 points) Save the plots into a "plots" directory. Make sure the file names are meaningful.
