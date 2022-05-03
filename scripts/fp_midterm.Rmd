@@ -42,24 +42,18 @@ Conduct some basic data cleaning to make your data file look like the following.
 * Filter for only student groups coded as `"White"` or `"Hispanic/Latino"`.
 
 ```{r}
-# assessments_clean <- map(assessments, ~filter(., `Student Group` == "White" | `Student Group` == "Hispanic/Latino"))
-
 assessments_clean <- assessments %>%
   filter(`Student Group`== "Hispanic/Latino" | `Student Group` == "White")
 ```
 
 * Select variables related to the number of students in each of the levels (1:4), and not percentages or collapsed levels.
 ```{r}
-#assessments_clean <- map_dfr(assessments_clean, ~select(., -contains(c("percent", "rate", "proficient"))))
-
 assessments_clean <- assessments_clean %>%
   select(-contains(c("percent","rate","proficient")))
 ```
 
 * Remove any row that has missing data in any of the *n* variables
 ```{r}
-#assessments_clean <- map(assessments_clean, ~drop_na(.x, contains("number")))
-
 assessments_clean <- assessments_clean %>%
   drop_na(contains("number")) %>%
   pivot_longer(cols = 9:12,
@@ -115,7 +109,6 @@ test <- assessment_agg[1:4, ] %>% # just first four rows for first district
   estimate_v("white", "hispanic_latino") # columns for ref/focal groups
 
 str(test)
-# Can extract the components?
 ```
 
 We can see that students coded Hispanic/Latino scored, on average, about 0.81
@@ -153,13 +146,7 @@ Note, on my computer these took about 40 seconds per analysis. It will likely ta
 
 Reproduce the following plot to confirm that the estimates are equivalent across methods.
 ```{r}
-#replace method1_b with method2 result when ready - Done, Cassie
-# method2 < method2 # I'm not sure if we want to replace one df with another. I did a join instead. I redid this section - Anwesha
 combined_methods <- left_join(method1, method2, by = c("district", "academic_year"))
-# 
-# str(method2)
-# map2(method1,method2,~ggplot(data = .x,aes(x=achieve_diff,y=achieve_diff))) #intention is to cycle through metho1 and method2 objects, and create geom_points using achieve_diff from each observation.
-# str(method2$achieve_diff)
 
 
 combined_methods %>% 
@@ -174,25 +161,10 @@ combined_methods %>%
        y = "V (`group_by() %>% nest() map()`)")
 ```
 
-```{r}
-#method1 %>%  # Cassie's effort at Part B Plot 2 - still throwing an error
-#  rename(v1 = achieve_diff) %>% 
-#  left_join(method2) %>% 
-#  rename(v2 = v) %>% 
-#  ggplot(aes(v2, v1)) +
-#  geom_point() +
-#  geom_line(color = "cornflowerblue") +
-#  xlab("nest_by") + 
-#  ylab("group_by") +
-#  theme_minimal()
-```
-
-
 3. (15 points) The plot below shows the achievement difference estimates for one school district across years. Produce a similar plot to the below for each of the first 100 school districts. Once you've created all the plots, **reproduce them again using an alternative method**. Make sure you don't miss the caption noting the number of schools in the district.
 
 Hint: You need to select unique *districts*. You may want to try something like the following:
 
-Method 1 - 
 ```{r}
 district_school_count <- assessment_agg %>% 
   group_by(district) %>% 
@@ -202,98 +174,22 @@ district_school_count <- assessment_agg %>%
     district_label = glue("Achievement Gap Estimates: {district}")
   )
     
-    
-#took the min value to account for school closures
-dists <- unique(method1$district)[1:100] # Updated this code with our dataframe labels - Cassie # changed to method 1 - AG
+
+dists <- unique(method1$district)[1:100] 
+```
 
 
+```{r}
 district_differences <- method1 %>% 
   filter(district %in% dists) %>% 
   left_join(district_school_count, by = "district") %>% 
   mutate(v_se = map_dbl(m1,3),
-         Color = ifelse(achieve_diff < 0, "#d35cff","#5ca3ff"))
-
-
-#dists_of_interest <- method1 %>%
-#  filter(district %in% dists)
-
-#dist_1 <- dists_of_interest %>%
-#  filter(district =="Adrian SD 61") %>% 
-#  mutate(v_se = map_dbl(m1,3))
-#        label = map_chr(glue("District included {~.1} schools."),2)) #bringing se values out to the row level
-
-#dist_1[3]
-
-
-# Method 1
-
-#dist_1 %>% ggplot(aes(academic_year,achieve_diff))+
-# geom_line()+
-#  geom_errorbar(aes(ymin = achieve_diff-v_se,
-#                    ymax=achieve_diff+v_se))+
-#  geom_hline(yintercept=0,
-#             color = "red")+
-#  geom_point(data = filter(dist_1,achieve_diff<0),
-#             color = "#d35cff")+
-#  geom_point(data = filter(dist_1,achieve_diff>0),
-#             color = "#5ca3ff")+
-#  labs(title = glue("Achievement Gap Estimates: {dist_1[[1]]}"),
-#       subtitle = "Negative values indicate White students have higher average achievement\nPositive Values indicate Hispanic/Latino students have higher average achievement",
-#       caption = glue("Note: District included {dist_1[[3]][[1]][[4]]} school(s)"),
-#       x="School Year",
-#       y= "Average achievement difference (SD units)")
-    
-    
-#why am I getting the discrete value and continuous scale error?!?! I am going bonkers
-#not sure what change Anwesha made to have this code start working, but it makes me joyous)
-
-
-#EK: creating the caption is still in progress
-#final_plots <- district_differences %>% 
-#  group_by(district_label,school_count_label) %>% 
-#  mutate(
-#    plots = pmap(list(district_label,school_count_label,data), #~{
-#    ggplot(..3,aes(academic_year,achieve_diff))+
-#      geom_errorbar(aes(ymin = achieve_diff-v_se,
-#                    ymax=achieve_diff+v_se))+
-#      geom_hline(yintercept=0,
-#             color = "red")+
-#      geom_point(aes(color = Color))+
-#      labs(title = ..1,
-#           subtitle = "Negative values indicate White students have higher average achievement\nPositive Values indicate Hispanic/Latino students have higher average achievement",
-#           x="School Year",
-#           y= "Average achievement difference (SD units)",
-#               caption = ..2)
-#  })
-#) 
-#final_plots$plots[[1]]
-#final_plots$plots
+         Color = ifelse(achieve_diff < 0,"#5ca3ff", "#d35cff"))
 ```
 
-
-Method 2 - 
+Method 1 - Generating plots using `nest_by()`
 ```{r}
-#test_plots <- head(district_differences, 10)
-
-#plot2 <- test_plots %>% 
-#  group_by(district, school_count) %>% 
-#  nest() %>% 
-#  mutate(
-#    plot = pmap(list(district, data, school_count), ~{
-#      ggplot(data = ., aes(x = academic_year, y = v)) +
-#                  geom_errorbar(ymin = v - v_se, ymax = v + v_se) +
-#                  geom_line() +
-#                  geom_hline(yintercept=0,
-#                             color = "red")
-#    }
-#    )
-#  )
-
-
-
-#method 2, generating plots with nest_by
-
-final_plots2 <- district_differences %>% 
+final_plots1 <- district_differences %>% 
   ungroup() %>% 
   nest_by(school_count_label,district_label) %>% 
   mutate(
@@ -308,18 +204,46 @@ final_plots2 <- district_differences %>%
         guides(fill = "none")+
         labs(
           title = district_label,
-          subtitle = "Negative values indicate <span style ='color:#d35cff'>White</span> students have higher average achievement\nPositive Values indicate <span style = 'color:#5ca3ff'>Hispanic/Latino</span> students have higher average achievement",
+          subtitle = "Negative values indicate <span style ='color:#d35cff;'>White</span> students have higher average achievement<br />Positive Values indicate <span style = 'color:#5ca3ff;'>Hispanic/Latino</span> students have higher average achievement",
            x="School Year",
            y= "Average achievement difference (SD units)",
                caption = school_count_label 
         )+
-        theme(legend.position="none")
+        theme_minimal() +
+        theme(legend.position="none",
+              plot.subtitle = element_markdown())
         )
   )
-
-
+final_plots1$plots[[5]]
 ```
 
+Method 2 - Generating plots using `group_by()` and `nest()` (exploring, not totally working yet)
+```{r}
+final_plots2 <- district_differences %>% 
+  group_by(district_label, school_count_label) %>% 
+  nest() %>% 
+  mutate(
+    plot = pmap(list(school_count_label, district_label, data), ~{
+      ggplot(data = ..1,
+             aes(x = academic_year, y = achieve_diff,
+                 ymin = achieve_diff-v_se, ymax = achieve_diff + v_se,
+                 group = ..2)) +
+        geom_errorbar() +
+        geom_line() +
+        geom_point(aes(color = Color)) +
+        geom_hline(yintercept = 0, color = "red") +
+        labs(
+          x = "School year",
+          y = "Average achievement difference (SD units)",
+          caption = glue("Note: District included {..3} schools."),
+          subtitle = glue("Negative values indicate <span style = 'color:#D35CFF;'>White</span> students have higher average achievement <br> Positive values indicate <span style='color:#5CA3FF;'>Hispanic/Latino</span> students have higher average achievement")
+        ) +
+                theme_minimal() +
+        theme(legend.position="none",
+              plot.subtitle = element_markdown())
+    })
+  )
+```
 
 **Extra Credit:** For up to one point extra credit, create a third set that "staples together" each of the preceding pairs of plots (i.e., to confirm that the plots were produced identically by both methods).
 ```{r}
@@ -330,51 +254,23 @@ final_plots2 <- district_differences %>%
 
 Create a directory
 ```{r}
-# Cassie's working on this section.
-# filenames <- here::here("plots", paste0("cyl", names(by_cyl), ".png"))
-
-# filenames
-
-#OR fs::dir_create(here::here("plots", "subfolder name"))
-
+fs::dir_create(here("plots","ach-gap-est"))
+files <- str_replace_all(
+  tolower(final_plots1$district_label),
+  " ",
+  "-"
+)
+paths<- here("plots","ach-gap-est", glue("{files}.png"))
 ```
 
 Save plots
 ```{r}
-# Cassie's working on this section - will update when graphs ready.
-
-fs::dir_create(here("plots","ach-gap-est"))
-files <- str_replace_all(
-  tolower(final_plots2$district_label),
-  " ",
-  "-"
-)
-paths<- here("plots","ach-gap-est",glue("{files}.png"))
-
-walk2(paths,final_plots2$plots,ggsave,
+walk2(paths, final_plots1$plots, ggsave,
       width= 9.5,
       height = 6.5,
       dpi = 500)
-#final_plots2 %>% 
-#  ungroup() %>% 
-#  mutate(path = paths) %>% 
-#  rowwise() %>%  
-#  summarize(
-#    ggsave(
-#      path,
-#      plots
-#    )
-#  )
-#newspapers <- str_replace_all(
-#tolower(final_plots$newspaper),
-#" ",
-#"-"
-#) paths <- here::here(
-#"plots",
-#"pulitzers",
-#glue("{newspapers}.png")
-#)
 ```
+
 **HINTS**
 
 * You don't have to use a loop to create the file names (maybe give `{glue}` a try? Otherwise `paste` or `paste0` will work fine).
