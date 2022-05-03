@@ -192,6 +192,7 @@ combined_methods %>%
 
 Hint: You need to select unique *districts*. You may want to try something like the following:
 
+Method 1 - 
 ```{r}
 dists <- unique(method1$district)[1:100] # Updated this code with our dataframe labels - Cassie # changed to method 1 - AG
 
@@ -204,6 +205,9 @@ dist_1 <- dists_of_interest %>%
  #        label = map_chr(glue("District included {~.1} schools."),2)) #bringing se values out to the row level
 
 dist_1[3]
+
+
+# Method 1
 
 dist_1 %>% ggplot(aes(academic_year,achieve_diff))+
   geom_line()+
@@ -247,6 +251,20 @@ final_plots <- dists_of_interest %>%
 final_plots$plots
 
 
+```
+
+
+Method 2 - 
+```{r}
+district_school_count <- assessment_agg %>% 
+  group_by(district) %>% 
+  summarize(school_count = min(n_schools)) #took the min value to account for school closures
+
+dists <- unique(method1$district)[1:100] 
+
+district_differences <- method1 %>% 
+  filter(district %in% dists) %>% 
+  left_join(district_school_count, by = "district")
 
 
 ```
