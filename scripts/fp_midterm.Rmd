@@ -268,6 +268,8 @@ final_plots <- district_differences %>%
 final_plots$plots
 
 
+
+
 ```
 
 
@@ -299,6 +301,32 @@ plot2 <- test_plots %>%
     }
     )
   )
+
+
+
+#method 2, generating plots with nest_by
+
+final_plots2 <- district_differences %>% 
+  ungroup() %>% 
+  nest_by(school_count_label,district_label) %>% 
+  mutate(
+    plots = list(
+      ggplot(data, aes(academic_year,achieve_diff))+
+        geom_hline(yintercept=0,
+                   color = "red")+
+        geom_point()+
+        guides(fill = "none")+
+        labs(
+          title = district_label,
+          subtitle = "Negative values indicate White students have higher average achievement\nPositive Values indicate Hispanic/Latino students have higher average achievement",
+           x="School Year",
+           y= "Average achievement difference (SD units)",
+               caption = school_count_label 
+        )
+        )
+  )
+
+final_plots2$plots[[1]]
 
 ```
 
