@@ -249,23 +249,23 @@ district_differences <- method1 %>%
 
 
 #EK: creating the caption is still in progress
-final_plots <- district_differences %>% 
-  group_by(district_label,school_count_label) %>% 
-  mutate(
-    plots = pmap(list(district_label,school_count_label,data), ~{
-    ggplot(..3,aes(academic_year,achieve_diff))+
-      geom_errorbar(aes(ymin = achieve_diff-v_se,
-                    ymax=achieve_diff+v_se))+
-      geom_hline(yintercept=0,
-             color = "red")+
-      geom_point(aes(color = Color)+
-      labs(title = ..1,
-           subtitle = "Negative values indicate White students have higher average achievement\nPositive Values indicate Hispanic/Latino students have higher average achievement",
-           x="School Year",
-           y= "Average achievement difference (SD units)",
-               caption = ..2)
-  })
-) 
+#final_plots <- district_differences %>% 
+#  group_by(district_label,school_count_label) %>% 
+#  mutate(
+#    plots = pmap(list(district_label,school_count_label,data), ~{
+#    ggplot(..3,aes(academic_year,achieve_diff))+
+#      geom_errorbar(aes(ymin = achieve_diff-v_se,
+#                    ymax=achieve_diff+v_se))+
+#      geom_hline(yintercept=0,
+#             color = "red")+
+#      geom_point(aes(color = Color)+
+#      labs(title = ..1,
+#           subtitle = "Negative values indicate White students have higher average achievement\nPositive Values indicate Hispanic/Latino students have higher #average achievement",
+#           x="School Year",
+#           y= "Average achievement difference (SD units)",
+#               caption = ..2)
+#  })
+#) 
 #final_plots$plots
 ```
 
@@ -301,6 +301,8 @@ final_plots2 <- district_differences %>%
         geom_hline(yintercept=0,
                    color = "red")+
         geom_point(aes(color = Color))+
+        geom_errorbar(aes(ymin=achieve_diff-v_se,
+                          ymax=achieve_diff+v_se))+
         guides(fill = "none")+
         labs(
           title = district_label,
