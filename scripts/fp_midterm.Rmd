@@ -260,12 +260,28 @@ district_school_count <- assessment_agg %>%
   group_by(district) %>% 
   summarize(school_count = min(n_schools)) #took the min value to account for school closures
 
-dists <- unique(method1$district)[1:100] 
+dists <- unique(method2$district)[1:100] 
 
-district_differences <- method1 %>% 
+district_differences <- method2 %>% 
   filter(district %in% dists) %>% 
-  left_join(district_school_count, by = "district")
+  left_join(district_school_count, by = "district") %>% 
+  select(-auc)
 
+test_plots <- head(district_differences, 10)
+
+plot2 <- test_plots %>% 
+  group_by(district, school_count) %>% 
+  nest() %>% 
+  mutate(
+    plot = pmap(list(district, data, school_count), ~{
+      ggplot(data = ., aes(x = academic_year, y = v)) +
+                  geom_errorbar(ymin = v - v_se, ymax = v + v_se) +
+                  geom_line(group = district) +
+                  geom_hline(yintercept=0,
+                             color = "red")
+    }
+    )
+  )
 
 ```
 
