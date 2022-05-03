@@ -193,8 +193,8 @@ combined_methods %>%
 Hint: You need to select unique *districts*. You may want to try something like the following:
 
 ```{r}
-dists <- unique(assessment_agg$district)[1:100] # Updated this code with our dataframe labels - Cassie
-dists_of_interest
+dists <- unique(method1$district)[1:100] # Updated this code with our dataframe labels - Cassie # changed to method 1 - AG
+
 dists_of_interest <- method1 %>%
   filter(district %in% dists)
 
