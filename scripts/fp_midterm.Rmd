@@ -194,6 +194,22 @@ Hint: You need to select unique *districts*. You may want to try something like 
 
 Method 1 - 
 ```{r}
+district_school_count <- assessment_agg %>% 
+  group_by(district) %>% 
+  summarize(school_count = min(n_schools)) %>% 
+  mutate(school_count_label = glue(
+    "Note: District included {school_count} school(s)"),
+    district_label = glue("Achievement Gap Estimates: {district}")
+  )
+    
+    
+#took the min value to account for school closures
+
+
+district_differences <- method1 %>% 
+  filter(district %in% dists) %>% 
+  left_join(district_school_count, by = "district")
+
 dists <- unique(method1$district)[1:100] # Updated this code with our dataframe labels - Cassie # changed to method 1 - AG
 
 dists_of_interest <- method1 %>%
@@ -231,23 +247,24 @@ dist_1 %>% ggplot(aes(academic_year,achieve_diff))+
 
 
 #EK: creating the caption is still in progress
-final_plots <- dists_of_interest %>% 
-  mutate(plots = pmap(list(district,data), ~{
-    ggplot(..2,aes(academic_year,achieve_diff))+
+final_plots <- district_differences %>% 
+  mutate(plots = pmap(list(district_label,school_count_label,data), ~{
+    ggplot(..3,aes(academic_year,achieve_diff))+
       geom_errorbar(aes(ymin = achieve_diff-v_se,
                     ymax=achieve_diff+v_se))+
       geom_hline(yintercept=0,
              color = "red")+
-      geom_point(data = filter(..2,achieve_diff<0),
+      geom_point(data = filter(..3,achieve_diff<=0),
              color = "#d35cff")+
-      geom_point(data = filter(..2,achieve_diff>0),
+      geom_point(data = filter(..3,achieve_diff>0),
              color = "#5ca3ff")+
-      labs(title = glue("Achievement Gap Estimates: {..1}"),
+      labs(title = ..1,
            subtitle = "Negative values indicate White students have higher average achievement\nPositive Values indicate Hispanic/Latino students have higher average achievement",
            x="School Year",
-           y= "Average achievement difference (SD units)")
+           y= "Average achievement difference (SD units)",
+               caption = ..2)
   })
-)
+) 
 final_plots$plots
 
 
