@@ -276,7 +276,7 @@ plot2 <- test_plots %>%
     plot = pmap(list(district, data, school_count), ~{
       ggplot(data = ., aes(x = academic_year, y = v)) +
                   geom_errorbar(ymin = v - v_se, ymax = v + v_se) +
-                  geom_line(group = district) +
+                  geom_line() +
                   geom_hline(yintercept=0,
                              color = "red")
     }
