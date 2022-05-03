@@ -249,23 +249,24 @@ district_differences <- method1 %>%
 
 
 #EK: creating the caption is still in progress
-#final_plots <- district_differences %>% 
-#  group_by(district_label,school_count_label) %>% 
-#  mutate(
-#    plots = pmap(list(district_label,school_count_label,data), ~{
-#    ggplot(..3,aes(academic_year,achieve_diff))+
-#      geom_errorbar(aes(ymin = achieve_diff-v_se,
-#                    ymax=achieve_diff+v_se))+
-#      geom_hline(yintercept=0,
-#             color = "red")+
-#      geom_point(aes(color = Color)+
-#      labs(title = ..1,
-#           subtitle = "Negative values indicate White students have higher average achievement\nPositive Values indicate Hispanic/Latino students have higher #average achievement",
-#           x="School Year",
-#           y= "Average achievement difference (SD units)",
-#               caption = ..2)
-#  })
-#) 
+final_plots <- district_differences %>% 
+  group_by(district_label,school_count_label) %>% 
+  mutate(
+    plots = pmap(list(district_label,school_count_label,data), ~{
+    ggplot(..3,aes(academic_year,achieve_diff))+
+      geom_errorbar(aes(ymin = achieve_diff-v_se,
+                    ymax=achieve_diff+v_se))+
+      geom_hline(yintercept=0,
+             color = "red")+
+      geom_point(aes(color = Color))+
+      labs(title = ..1,
+           subtitle = "Negative values indicate White students have higher average achievement\nPositive Values indicate Hispanic/Latino students have higher average achievement",
+           x="School Year",
+           y= "Average achievement difference (SD units)",
+               caption = ..2)
+  })
+) 
+final_plots$plots[[1]]
 #final_plots$plots
 ```
 
@@ -300,13 +301,14 @@ final_plots2 <- district_differences %>%
       ggplot(data, aes(academic_year,achieve_diff))+
         geom_hline(yintercept=0,
                    color = "red")+
-        geom_point(aes(color = Color))+
         geom_errorbar(aes(ymin=achieve_diff-v_se,
                           ymax=achieve_diff+v_se))+
+        geom_point(aes(color = Color))+
+        geom_line(aes(y=achieve_diff))+
         guides(fill = "none")+
         labs(
           title = district_label,
-          subtitle = "Negative values indicate <span style = 'color:#d35cff'>White</span> students have higher average achievement\nPositive Values indicate <span style = 'color:#5ca3ff'>Hispanic/Latino</span> students have higher average achievement",
+          subtitle = "Negative values indicate <span style ='color:#d35cff'>White</span> students have higher average achievement\nPositive Values indicate <span style = 'color:#5ca3ff'>Hispanic/Latino</span> students have higher average achievement",
            x="School Year",
            y= "Average achievement difference (SD units)",
                caption = school_count_label 
@@ -314,7 +316,8 @@ final_plots2 <- district_differences %>%
         theme(legend.position="none")
         )
   )
-final_plots2$plots[[1]]
+
+
 ```
 
 
@@ -339,6 +342,29 @@ Create a directory
 Save plots
 ```{r}
 # Cassie's working on this section - will update when graphs ready.
+
+fs::dir_create(here("plots","foo"))
+files <- str_replace_all(
+  tolower(final_plots2$district_label),
+  " ",
+  "-"
+)
+paths<- here("plots","foo",glue("{files}.png"))
+
+walk2(paths,final_plots2$plots,ggsave,
+      width= 9.5,
+      height = 6.5,
+      dpi = 500)
+#final_plots2 %>% 
+#  ungroup() %>% 
+#  mutate(path = paths) %>% 
+#  rowwise() %>%  
+#  summarize(
+#    ggsave(
+#      path,
+#      plots
+#    )
+#  )
 #newspapers <- str_replace_all(
 #tolower(final_plots$newspaper),
 #" ",
