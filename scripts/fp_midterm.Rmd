@@ -10,7 +10,7 @@ knitr::opts_chunk$set(cache = TRUE)
 
 library(pacman)
 
-pacman::p_load(tidyverse, dplyr, janitor, here, rio, gapr,glue)
+pacman::p_load(tidyverse, dplyr, janitor, here, rio, gapr,glue,ggtext)
 ```
 
 # Part A: Data
@@ -204,42 +204,44 @@ district_school_count <- assessment_agg %>%
     
     
 #took the min value to account for school closures
+dists <- unique(method1$district)[1:100] # Updated this code with our dataframe labels - Cassie # changed to method 1 - AG
 
 
 district_differences <- method1 %>% 
   filter(district %in% dists) %>% 
-  left_join(district_school_count, by = "district")
+  left_join(district_school_count, by = "district") %>% 
+  mutate(v_se = map_dbl(m1,3),
+         Color = ifelse(achieve_diff < 0, "#d35cff","#5ca3ff"))
 
-dists <- unique(method1$district)[1:100] # Updated this code with our dataframe labels - Cassie # changed to method 1 - AG
 
-dists_of_interest <- method1 %>%
-  filter(district %in% dists)
+#dists_of_interest <- method1 %>%
+#  filter(district %in% dists)
 
-dist_1 <- dists_of_interest %>%
-  filter(district =="Adrian SD 61") %>% 
-  mutate(v_se = map_dbl(m1,3))
- #        label = map_chr(glue("District included {~.1} schools."),2)) #bringing se values out to the row level
+#dist_1 <- dists_of_interest %>%
+#  filter(district =="Adrian SD 61") %>% 
+#  mutate(v_se = map_dbl(m1,3))
+#        label = map_chr(glue("District included {~.1} schools."),2)) #bringing se values out to the row level
 
-dist_1[3]
+#dist_1[3]
 
 
 # Method 1
 
-dist_1 %>% ggplot(aes(academic_year,achieve_diff))+
-  geom_line()+
-  geom_errorbar(aes(ymin = achieve_diff-v_se,
-                    ymax=achieve_diff+v_se))+
-  geom_hline(yintercept=0,
-             color = "red")+
-  geom_point(data = filter(dist_1,achieve_diff<0),
-             color = "#d35cff")+
-  geom_point(data = filter(dist_1,achieve_diff>0),
-             color = "#5ca3ff")+
-  labs(title = glue("Achievement Gap Estimates: {dist_1[[1]]}"),
-       subtitle = "Negative values indicate White students have higher average achievement\nPositive Values indicate Hispanic/Latino students have higher average achievement",
-       caption = glue("Note: District included {dist_1[[3]][[1]][[4]]} school(s)"),
-       x="School Year",
-       y= "Average achievement difference (SD units)")
+#dist_1 %>% ggplot(aes(academic_year,achieve_diff))+
+# geom_line()+
+#  geom_errorbar(aes(ymin = achieve_diff-v_se,
+#                    ymax=achieve_diff+v_se))+
+#  geom_hline(yintercept=0,
+#             color = "red")+
+#  geom_point(data = filter(dist_1,achieve_diff<0),
+#             color = "#d35cff")+
+#  geom_point(data = filter(dist_1,achieve_diff>0),
+#             color = "#5ca3ff")+
+#  labs(title = glue("Achievement Gap Estimates: {dist_1[[1]]}"),
+#       subtitle = "Negative values indicate White students have higher average achievement\nPositive Values indicate Hispanic/Latino students have higher average achievement",
+#       caption = glue("Note: District included {dist_1[[3]][[1]][[4]]} school(s)"),
+#       x="School Year",
+#       y= "Average achievement difference (SD units)")
     
     
 #why am I getting the discrete value and continuous scale error?!?! I am going bonkers
@@ -248,16 +250,15 @@ dist_1 %>% ggplot(aes(academic_year,achieve_diff))+
 
 #EK: creating the caption is still in progress
 final_plots <- district_differences %>% 
-  mutate(plots = pmap(list(district_label,school_count_label,data), ~{
+  group_by(district_label,school_count_label) %>% 
+  mutate(
+    plots = pmap(list(district_label,school_count_label,data), ~{
     ggplot(..3,aes(academic_year,achieve_diff))+
       geom_errorbar(aes(ymin = achieve_diff-v_se,
                     ymax=achieve_diff+v_se))+
       geom_hline(yintercept=0,
              color = "red")+
-      geom_point(data = filter(..3,achieve_diff<=0),
-             color = "#d35cff")+
-      geom_point(data = filter(..3,achieve_diff>0),
-             color = "#5ca3ff")+
+      geom_point(aes(color = Color)+
       labs(title = ..1,
            subtitle = "Negative values indicate White students have higher average achievement\nPositive Values indicate Hispanic/Latino students have higher average achievement",
            x="School Year",
@@ -265,42 +266,27 @@ final_plots <- district_differences %>%
                caption = ..2)
   })
 ) 
-final_plots$plots
-
-
-
-
+#final_plots$plots
 ```
 
 
 Method 2 - 
 ```{r}
-district_school_count <- assessment_agg %>% 
-  group_by(district) %>% 
-  summarize(school_count = min(n_schools)) #took the min value to account for school closures
+#test_plots <- head(district_differences, 10)
 
-dists <- unique(method2$district)[1:100] 
-
-district_differences <- method2 %>% 
-  filter(district %in% dists) %>% 
-  left_join(district_school_count, by = "district") %>% 
-  select(-auc)
-
-test_plots <- head(district_differences, 10)
-
-plot2 <- test_plots %>% 
-  group_by(district, school_count) %>% 
-  nest() %>% 
-  mutate(
-    plot = pmap(list(district, data, school_count), ~{
-      ggplot(data = ., aes(x = academic_year, y = v)) +
-                  geom_errorbar(ymin = v - v_se, ymax = v + v_se) +
-                  geom_line() +
-                  geom_hline(yintercept=0,
-                             color = "red")
-    }
-    )
-  )
+#plot2 <- test_plots %>% 
+#  group_by(district, school_count) %>% 
+#  nest() %>% 
+#  mutate(
+#    plot = pmap(list(district, data, school_count), ~{
+#      ggplot(data = ., aes(x = academic_year, y = v)) +
+#                  geom_errorbar(ymin = v - v_se, ymax = v + v_se) +
+#                  geom_line() +
+#                  geom_hline(yintercept=0,
+#                             color = "red")
+#    }
+#    )
+#  )
 
 
 
@@ -314,20 +300,19 @@ final_plots2 <- district_differences %>%
       ggplot(data, aes(academic_year,achieve_diff))+
         geom_hline(yintercept=0,
                    color = "red")+
-        geom_point()+
+        geom_point(aes(color = Color))+
         guides(fill = "none")+
         labs(
           title = district_label,
-          subtitle = "Negative values indicate White students have higher average achievement\nPositive Values indicate Hispanic/Latino students have higher average achievement",
+          subtitle = "Negative values indicate <span style = 'color:#d35cff'>White</span> students have higher average achievement\nPositive Values indicate <span style = 'color:#5ca3ff'>Hispanic/Latino</span> students have higher average achievement",
            x="School Year",
            y= "Average achievement difference (SD units)",
                caption = school_count_label 
-        )
+        )+
+        theme(legend.position="none")
         )
   )
-
 final_plots2$plots[[1]]
-
 ```
 
 
