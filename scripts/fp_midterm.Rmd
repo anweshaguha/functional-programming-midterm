@@ -343,13 +343,13 @@ Save plots
 ```{r}
 # Cassie's working on this section - will update when graphs ready.
 
-fs::dir_create(here("plots","foo"))
+fs::dir_create(here("plots","ach-gap-est"))
 files <- str_replace_all(
   tolower(final_plots2$district_label),
   " ",
   "-"
 )
-paths<- here("plots","foo",glue("{files}.png"))
+paths<- here("plots","ach-gap-est",glue("{files}.png"))
 
 walk2(paths,final_plots2$plots,ggsave,
       width= 9.5,
